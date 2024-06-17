@@ -28,8 +28,8 @@ class JailEnv(gym.Env):
     The agent can release the second robber from jail if the agent has the key.
     The agent wins the game by reaching the goal.
     The rewards are as follows:
-    - The agent reaches the goal: +10
-    - The agent gets caught by the police: -2
+    - The agent reaches the goal: +100
+    - The agent gets caught by the police: -30
     - The agent collects the key of his friend cell: +2
     - The agent releases the second robber: +5
     - The agent moves: -0.05
@@ -83,7 +83,17 @@ class JailEnv(gym.Env):
         Return the initial state of the environment and the info of the environment
         """
         self.thief_position = np.array([0, 0])
-        
+        # Experiment with resetting the thief position:
+        # Reset the thief position:
+        # self.thief_position = robber_in_jail
+        # invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
+        # while True in invalid_initial_positions:
+        #     print("Invalid initial position, reinitializing")
+        #     self.thief_position = np.array([np.random.randint(0, self.grid_size), np.random.randint(0, self.grid_size)])
+        #     invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
+            
+
+        # print("Valid initial position")
         self.done = False
         self.reward = 0
         self.has_thief_collected_key = False
@@ -149,7 +159,7 @@ class JailEnv(gym.Env):
         ## Reward:
         ## -------
         if np.array_equal(self.thief_position, self.goal): # Check goal condition
-            self.reward += 10
+            self.reward += 100
             self.done = True
         # Check if the thief has run into the second robber and has key
         elif self.is_second_robber_released == False and np.array_equal(self.thief_position, self.robber_in_jail) and self.has_thief_collected_key:
@@ -165,7 +175,7 @@ class JailEnv(gym.Env):
             if len(self.key_states) == 0:
                 self.has_thief_collected_key = True
         elif True in [np.array_equal(self.thief_position, each_police) for each_police in self.police_states]: # Check police-states
-            self.reward += -2
+            self.reward += -30
             self.done = True
             
          # Every other state    
@@ -221,8 +231,6 @@ class JailEnv(gym.Env):
             key = pygame.image.load(yellow_key_img)
             key = pygame.transform.scale(key, (self.cell_size, self.cell_size)) 
             self.screen.blit(key,(each_key[1] *self.cell_size,each_key[0] *self.cell_size)) 
-
-        
 
 
         # Draw the thief:

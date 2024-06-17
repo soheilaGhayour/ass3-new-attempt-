@@ -93,10 +93,10 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
 
         # Create subplots for each action:
         # --------------------------------
-        _, axes = plt.subplots(1, 4, figsize=(20, 5))
+        _, axes = plt.subplots(2, 4, figsize=(20, 5))
 
         for i, action in enumerate(actions):
-            ax = axes[i]
+            ax = axes[0][i]
             heatmap_data = q_table[:, :, i].copy()
 
             # Mask the goal state's Q-value for visualization:
@@ -131,9 +131,85 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
                     ha='center', va='center', weight='bold', fontsize=14)    
 
             ax.set_title(f'Action: {action}')
+    
+        
+
+        # max_q=np.zeros(shape=(10, 10))
+
+        # for i in range(10):
+        #     for j in range(10):
+        #         print(f"i: {i}, j: {j}")
+        #         max_q[i,j] = np.max(q_table[i,j,:])
+
+        # print(f"max_q: {max_q}\n")        
+
+        max_Q_values = np.max(q_table, axis=2)
+        start = (0, 0)
+        goal = (9, 9)
+# show the plot for the final answer using arrows:
+        print(axes)
+        ax = axes[1][0]
+        # find the index of the maximum Q-value for each state
+        optimal_policy = np.argmax(q_table, axis=2)
+        mask = np.zeros_like(optimal_policy, dtype=bool)
+        mask[goal_coordinates] = True
+        for i in range(len(police_states)):
+            mask[police_states[i]] = True
+        for i in range(len(wall_states)):
+            mask[wall_states[i]] = True
+
+
+        mask = np.ones_like(optimal_policy)
+
+        optimal_policy_indices_array = [(0,0)]
+        current_cell = optimal_policy_indices_array[-1]
+        
+        # while(True):
+        #     next_move = optimal_policy[current_cell]
+        #     current_cell = (current_cell[0] + navigations[next_move][0], current_cell[1] + navigations[next_move][1])
+        #     optimal_policy_indices_array.append(current_cell)
+        #     print(current_cell == goal_coordinates, current_cell, goal_coordinates)
+        #     if(current_cell == goal_coordinates):
+        #         break
+
+        for i in range(len(optimal_policy_indices_array)):
+            mask[optimal_policy_indices_array[i]] = False
+
+        arrowOfAction = ['↑','↓','→', '←']
+        
+        sns.heatmap(np.ones_like(optimal_policy), annot=False, fmt="", cmap="viridis",
+                    ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
+        # write the desired action on each state
+        temp_added_value = 0.5
+        for i in range(optimal_policy.shape[0]):
+            for j in range(optimal_policy.shape[1]):
+                if (i, j) == goal_coordinates:
+                    ax.text(j + temp_added_value, i + temp_added_value, 'G', color='green',
+                            ha='center', va='center', weight='bold', fontsize=14)
+                elif (i, j) in police_states:
+                    ax.text(j + temp_added_value, i + temp_added_value, 'P', color='red',
+                            ha='center', va='center', weight='bold', fontsize=14)
+                elif (i, j) in wall_states:
+                    ax.text(j + temp_added_value, i + temp_added_value, 'W', color='brown',
+                            ha='center', va='top', weight='bold', fontsize=10)
+                else:
+                    color = 'black'
+                    if((i,j) in optimal_policy_indices_array):
+                        color = 'white'
+                    ax.text(j + temp_added_value, i + temp_added_value, arrowOfAction[optimal_policy[i, j]], color=color,
+                            ha='center', va='center', weight='bold', fontsize=14)
+                    
+                if (i, j) == goal_coordinates:
+                    ax.text(j + temp_added_value, i + temp_added_value, 'R', color='blue',
+                            ha='center', va='center', weight='bold', fontsize=14)
+                            
+                    
+        ax.set_title("Optimal Policy")
+        plt.title('Max Q-Value Heatmap with Path Masked')
 
         plt.tight_layout()
-        plt.show()
+        plt.show()        
+
 
     except FileNotFoundError:
         print("No saved Q-table was found. Please train the Q-learning agent first or check your path.")
