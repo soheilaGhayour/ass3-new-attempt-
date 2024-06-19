@@ -12,10 +12,10 @@ robber_in_jail_img = ('robber_in_jail.png')
 two_robbers_img = ('two_robbers_released.png')
 empty_jail_img = ('empty_jail.png')
 
-wall_states = [(8,2),(4,6),(5,9),(2,5),(3,3),(0,7),(7,5)]
-police_states = [(4,5),(1,7),(7,8)]
-key_states = [(2,2)]
-robber_in_jail = (5,0)
+wall_states = [(2,3),(1,0)]
+police_states = [(1,4),(0,2)]
+key_states = [(1,1)]
+robber_in_jail = (3,0)
 
 class JailEnv(gym.Env):
     '''
@@ -34,7 +34,7 @@ class JailEnv(gym.Env):
     - The agent releases the second robber: +5
     - The agent moves: -0.05
     '''
-    def __init__(self, grid_size=10) -> None:
+    def __init__(self, grid_size=5) -> None:
         super(JailEnv, self).__init__()
         self.grid_size = grid_size
         self.cell_size = 50
@@ -52,6 +52,8 @@ class JailEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=0, high=grid_size-1, shape=(2,), dtype=np.int32)
         self.robber_in_jail = robber_in_jail
         self.is_second_robber_released = False
+        self.count_release = 0
+        self.count_key = 0
         # Add police-states
         for i in range(len(police_states)):
             self.add_police_states(police_state_coordinates=(police_states[i][0],police_states[i][1]))
@@ -102,7 +104,16 @@ class JailEnv(gym.Env):
         
         info = self.calc_distance_to_goal()
 
-        return self.thief_position, info
+        # print(self.thief_position, int(self.has_thief_collected_key), int(self.is_second_robber_released))
+
+        # define state:
+        # 0: has thief not collected key
+        # 1: has thief collected key
+        # 2: has collected key and second robber been released
+        state = np.array([0,0, np.random.randint(0,3)])
+        print("State:---> ", state)
+        # print("State: ", state)
+        return state, info
 
     # Method 2: Add police states
     # ---------
@@ -159,7 +170,7 @@ class JailEnv(gym.Env):
         ## Reward:
         ## -------
         if np.array_equal(self.thief_position, self.goal): # Check goal condition
-            self.reward += 100
+            self.reward += 20
             self.done = True
         # Check if the thief has run into the second robber and has key
         elif self.is_second_robber_released == False and np.array_equal(self.thief_position, self.robber_in_jail) and self.has_thief_collected_key:
@@ -169,25 +180,28 @@ class JailEnv(gym.Env):
         elif(len(self.key_states)>0 and np.array_equal(self.thief_position, self.key_states[0])):
             self.key_states.pop(0)
             self.reward += 2
-            self.done = False
-
-             # Check if key is collected
+            # Check if key is collected
             if len(self.key_states) == 0:
                 self.has_thief_collected_key = True
         elif True in [np.array_equal(self.thief_position, each_police) for each_police in self.police_states]: # Check police-states
-            self.reward += -30
+            self.reward += -10
             self.done = True
             
          # Every other state    
         else:
-            self.reward += -0.05
+            self.reward += -0.1
             self.done = False
 
         ## Info:
         ## -----
-        info = self.calc_distance_to_goal()
+        info = self.has_thief_collected_key, self.is_second_robber_released, self.count_key, self.count_release 
 
-        return self.thief_position, self.reward, self.done, info
+        # state = np.array([*self.thief_position, np.random.randint(0,3)])
+
+        # state2 =  (not self.has_thief_collected_key and 0) or (self.is_second_robber_released and 2) or 1
+        state2 = self.is_second_robber_released and 2 or (self.has_thief_collected_key and 1 or 0)
+        print("State: ", state2)
+        return (*self.thief_position ,state2), self.reward, self.done, info
 
     def render(self):
         """ Method 3: .render(): Render the environment to visualize the current state of the environment"""

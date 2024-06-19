@@ -18,7 +18,7 @@ def train_q_learning(env,
 
     # Initialize the Q-table:
     # -----------------------
-    q_table = np.zeros((env.grid_size, env.grid_size, env.action_space.n))
+    q_table = np.zeros((env.grid_size, env.grid_size, 3, env.action_space.n))
 
     # Q-learning algorithm:
     # ---------------------
@@ -29,6 +29,8 @@ def train_q_learning(env,
 
         state = tuple(state)
         total_reward = 0
+
+        # print(f"state: {state}")
 
         #! Step 2: Take actions in the environment until "Done" flag is triggered
         #! -------
@@ -41,13 +43,14 @@ def train_q_learning(env,
                 action = np.argmax(q_table[state])  # Exploit
 
             next_state, reward, done, _ = env.step(action)
-            # env.render()
 
             next_state = tuple(next_state)
             total_reward += reward
 
+            # print("next_state" , next_state)
             #! Step 4: Update the Q-values using the Q-value update rule
             #! -------
+            # print(f"state: {state}, action: {action}, q_table[state][action]: {q_table[state]}")
             q_table[state][action] = q_table[state][action] + alpha * \
                 (reward + gamma *
                  np.max(q_table[next_state]) - q_table[state][action])
@@ -63,7 +66,8 @@ def train_q_learning(env,
         #! -------
         epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
-        print(f"Episode {episode + 1}: Total Reward: {total_reward}")
+        if (episode + 1) % 100 == 0:
+            print(f"Episode {episode + 1}: Total Reward: {total_reward}")
 
     #! Step 7: Close the environment window
     #! -------
@@ -93,44 +97,46 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
 
         # Create subplots for each action:
         # --------------------------------
-        _, axes = plt.subplots(2, 4, figsize=(20, 5))
+        _, axes = plt.subplots(3, 4, figsize=(20, 15))
 
-        for i, action in enumerate(actions):
-            ax = axes[0][i]
-            heatmap_data = q_table[:, :, i].copy()
+        for j in range(3):
+            for i, action in enumerate(actions):
+                ax = axes[j][i]
+                heatmap_data = q_table[:, :, j, i].copy()
 
-            # Mask the goal state's Q-value for visualization:
-            # ------------------------------------------------
-            mask = np.zeros_like(heatmap_data, dtype=bool)
-            # mask[goal_coordinates] = True
-            
-            # for wall in wall_states:
-            #     mask[wall] = True
-            # for police in police_states:
-            #     mask[police] = True
-            # for key in key_states:
-            #     mask[key] = True    
+                print("heatmap_data", heatmap_data.shape, heatmap_data)
+                # Mask the goal state's Q-value for visualization:
+                # ------------------------------------------------
+                mask = np.zeros_like(heatmap_data, dtype=bool)
+                # mask[goal_coordinates] = True
+                
+                # for wall in wall_states:
+                #     mask[wall] = True
+                # for police in police_states:
+                #     mask[police] = True
+                # for key in key_states:
+                #     mask[key] = True    
 
-            sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="viridis",
-                        ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
+                sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="viridis",
+                            ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
 
-            # Denote Goal and Hell states:
-            # ----------------------------
-            ax.text(goal_coordinates[1] + 0.5, goal_coordinates[0] + 0.5, 'G', color='green',
-                    ha='center', va='center', weight='bold', fontsize=14)
-            for key in key_states:
-                ax.text(key[1] + 0.5, key[0] + 0.5, 'K', color='yellow',
+                # Denote Goal and Hell states:
+                # ----------------------------
+                ax.text(goal_coordinates[1] + 0.5, goal_coordinates[0] + 0.5, 'G', color='green',
                         ha='center', va='center', weight='bold', fontsize=14)
-            for police in police_states:
-                ax.text(police[1] + 0.5, police[0] + 0.5, 'P', color='red',
+                for key in key_states:
+                    ax.text(key[1] + 0.5, key[0] + 0.5, 'K', color='yellow',
+                            ha='center', va='center', weight='bold', fontsize=14)
+                for police in police_states:
+                    ax.text(police[1] + 0.5, police[0] + 0.5, 'P', color='red',
+                            ha='center', va='center', weight='bold', fontsize=14)    
+                for wall in wall_states:
+                    ax.text(wall[1] + 0.5, wall[0] + 0.5, 'W', color='black',
+                            ha='center', va='center', weight='bold', fontsize=14)
+                ax.text(robber_in_jail[1] + 0.5, robber_in_jail[0] + 0.5, 'J', color='blue',
                         ha='center', va='center', weight='bold', fontsize=14)    
-            for wall in wall_states:
-                ax.text(wall[1] + 0.5, wall[0] + 0.5, 'W', color='black',
-                        ha='center', va='center', weight='bold', fontsize=14)
-            ax.text(robber_in_jail[1] + 0.5, robber_in_jail[0] + 0.5, 'J', color='blue',
-                    ha='center', va='center', weight='bold', fontsize=14)    
 
-            ax.set_title(f'Action: {action}')
+                ax.set_title(f'Action: {action} j:{j}')
     
         
 
@@ -143,69 +149,61 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
 
         # print(f"max_q: {max_q}\n")        
 
-        max_Q_values = np.max(q_table, axis=2)
-        start = (0, 0)
-        goal = (9, 9)
-# show the plot for the final answer using arrows:
-        print(axes)
-        ax = axes[1][0]
-        # find the index of the maximum Q-value for each state
-        optimal_policy = np.argmax(q_table, axis=2)
-        mask = np.zeros_like(optimal_policy, dtype=bool)
-        mask[goal_coordinates] = True
-        for i in range(len(police_states)):
-            mask[police_states[i]] = True
-        for i in range(len(wall_states)):
-            mask[wall_states[i]] = True
+#         max_Q_values = np.max(q_table, axis=2)
+#         start = (0, 0)
+#         goal = (9, 9)
+# # show the plot for the final answer using arrows:
+#         print(axes)
+        # ax = axes[1][0]
+        # # find the index of the maximum Q-value for each state
+        # optimal_policy = np.argmax(q_table, axis=2)
+        # mask = np.zeros_like(optimal_policy, dtype=bool)
+        # mask[goal_coordinates] = True
+        # for i in range(len(police_states)):
+        #     mask[police_states[i]] = True
+        # for i in range(len(wall_states)):
+        #     mask[wall_states[i]] = True
 
 
-        mask = np.ones_like(optimal_policy)
+        # mask = np.ones_like(optimal_policy)
 
-        optimal_policy_indices_array = [(0,0)]
-        current_cell = optimal_policy_indices_array[-1]
+        # optimal_policy_indices_array = [(0,0)]
         
-        # while(True):
-        #     next_move = optimal_policy[current_cell]
-        #     current_cell = (current_cell[0] + navigations[next_move][0], current_cell[1] + navigations[next_move][1])
-        #     optimal_policy_indices_array.append(current_cell)
-        #     print(current_cell == goal_coordinates, current_cell, goal_coordinates)
-        #     if(current_cell == goal_coordinates):
-        #         break
 
-        for i in range(len(optimal_policy_indices_array)):
-            mask[optimal_policy_indices_array[i]] = False
+        # for i in range(len(optimal_policy_indices_array)):
+        #     mask[optimal_policy_indices_array[i]] = False
 
-        arrowOfAction = ['↑','↓','→', '←']
+        # arrowOfAction = ['↑','↓','→', '←']
         
-        sns.heatmap(np.ones_like(optimal_policy), annot=False, fmt="", cmap="viridis",
-                    ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
-        # write the desired action on each state
-        temp_added_value = 0.5
-        for i in range(optimal_policy.shape[0]):
-            for j in range(optimal_policy.shape[1]):
-                if (i, j) == goal_coordinates:
-                    ax.text(j + temp_added_value, i + temp_added_value, 'G', color='green',
-                            ha='center', va='center', weight='bold', fontsize=14)
-                elif (i, j) in police_states:
-                    ax.text(j + temp_added_value, i + temp_added_value, 'P', color='red',
-                            ha='center', va='center', weight='bold', fontsize=14)
-                elif (i, j) in wall_states:
-                    ax.text(j + temp_added_value, i + temp_added_value, 'W', color='brown',
-                            ha='center', va='top', weight='bold', fontsize=10)
-                else:
-                    color = 'black'
-                    if((i,j) in optimal_policy_indices_array):
-                        color = 'white'
-                    ax.text(j + temp_added_value, i + temp_added_value, arrowOfAction[optimal_policy[i, j]], color=color,
-                            ha='center', va='center', weight='bold', fontsize=14)
+        # sns.heatmap(np.ones_like(optimal_policy), annot=False, fmt="", cmap="viridis",
+        #             ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
+        # # write the desired action on each state
+        # temp_added_value = 0.5
+        # for i in range(optimal_policy.shape[0]):
+        #     for j in range(optimal_policy.shape[1]):
+        #         if (i, j) == goal_coordinates:
+        #             ax.text(j + temp_added_value, i + temp_added_value, 'G', color='green',
+        #                     ha='center', va='center', weight='bold', fontsize=14)
+        #         elif (i, j) in police_states:
+        #             ax.text(j + temp_added_value, i + temp_added_value, 'P', color='red',
+        #                     ha='center', va='center', weight='bold', fontsize=14)
+        #         elif (i, j) in wall_states:
+        #             ax.text(j + temp_added_value, i + temp_added_value, 'W', color='brown',
+        #                     ha='center', va='top', weight='bold', fontsize=10)
+        #         else:
+        #             color = 'black'
+        #             if((i,j) in optimal_policy_indices_array):
+        #                 color = 'white'
+        #             ax.text(j + temp_added_value, i + temp_added_value, arrowOfAction[optimal_policy[i, j]], color=color,
+        #                     ha='center', va='center', weight='bold', fontsize=14)
                     
-                if (i, j) == goal_coordinates:
-                    ax.text(j + temp_added_value, i + temp_added_value, 'R', color='blue',
-                            ha='center', va='center', weight='bold', fontsize=14)
+        #         if (i, j) == goal_coordinates:
+        #             ax.text(j + temp_added_value, i + temp_added_value, 'R', color='blue',
+        #                     ha='center', va='center', weight='bold', fontsize=14)
                             
                     
-        ax.set_title("Optimal Policy")
-        plt.title('Max Q-Value Heatmap with Path Masked')
+        # ax.set_title("Optimal Policy")
+        # plt.title('Max Q-Value Heatmap with Path Masked')
 
         plt.tight_layout()
         plt.show()        
