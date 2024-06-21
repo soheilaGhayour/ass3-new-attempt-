@@ -15,18 +15,18 @@ epsilon_min = 0.1  # Minimum exploration rate
 epsilon_decay = 0.995  # Decay rate for exploration
 no_episodes = 10_000 #Number of episodes
 
-goal_coordinates = (4, 4)
+goal_coordinates = (9, 9)
 # Define all hell state coordinates as a tuple within a list
 
-# wall_states = [(8,2),(4,6),(5,9),(2,5),(3,3),(0,7),(7,5)]
-# police_states = [(4,5),(1,7),(7,8)]
-# key_states = [(2,2)]
-# robber_in_jail = (5,0)
+wall_states = [(8,2),(4,6),(5,9),(2,5),(3,3),(0,7),(7,5)]
+police_states = [(4,5),(1,7),(7,8)]
+key_states = [(2,2)]
+robber_in_jail = (5,0)
 
-wall_states = [(2,3),(1,0)]
-police_states = [(1,4),(0,2)]
-key_states = [(1,1)]
-robber_in_jail = (3,0)
+# wall_states = [(2,3),(1,0)]
+# police_states = [(1,4),(0,2)]
+# key_states = [(1,1)]
+# robber_in_jail = (3,0)
 
 # Execute:
 # --------
