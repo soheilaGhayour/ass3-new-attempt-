@@ -16,7 +16,13 @@ wall_states = [(8,2),(4,6),(5,9),(2,5),(3,3),(0,7),(7,5)]
 police_states = [(4,5),(1,7),(7,8)]
 key_states = [(2,2)]
 robber_in_jail = (5,0)
+grid_size = 10
 
+getting_key_reward = 100
+releasing_robber_reward = 100
+police_reward = -200
+goal_reward = 500
+else_reward = -1
 class JailEnv(gym.Env):
     '''
     `JailEnv` is a custom environment where the agent (thief) has to escape the jail without getting caught by the police.
@@ -28,13 +34,13 @@ class JailEnv(gym.Env):
     The agent can release the second robber from jail if the agent has the key.
     The agent wins the game by reaching the goal.
     The rewards are as follows:
-    - The agent reaches the goal: +100
+    - The agent reaches the goal: +500
     - The agent gets caught by the police: -30
-    - The agent collects the key of his friend cell: +2
-    - The agent releases the second robber: +5
-    - The agent moves: -0.05
+    - The agent collects the key of his friend cell: +100
+    - The agent releases the second robber: +100
+    - The agent moves: -1
     '''
-    def __init__(self, grid_size=10) -> None:
+    def __init__(self, grid_size=grid_size) -> None:
         super(JailEnv, self).__init__()
         self.grid_size = grid_size
         self.cell_size = 50
@@ -52,8 +58,6 @@ class JailEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=0, high=grid_size-1, shape=(2,), dtype=np.int32)
         self.robber_in_jail = robber_in_jail
         self.is_second_robber_released = False
-        self.count_release = 0
-        self.count_key = 0
         # Add police-states
         for i in range(len(police_states)):
             self.add_police_states(police_state_coordinates=(police_states[i][0],police_states[i][1]))
@@ -84,36 +88,45 @@ class JailEnv(gym.Env):
         """ Method 1: .reset(): Reset the environment to the initial state
         Return the initial state of the environment and the info of the environment
         """
-        # self.thief_position = np.array([0, 0])
-        # Experiment with resetting the thief position:
-        # Reset the thief position:
-        self.thief_position = robber_in_jail
-        invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
-        while True in invalid_initial_positions:
-            # print("Invalid initial position, reinitializing")
-            self.thief_position = np.array([np.random.randint(0, self.grid_size), np.random.randint(0, self.grid_size)])
-            invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
+        self.thief_position = np.array([0, 0])
+        # self.robber_in_jail = robber_in_jail
+        # self.thief_position = np.array(robber_in_jail)
+        # invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
+        # while True in invalid_initial_positions:
+        #     # print("Invalid initial position, reinitializing")
+        #     self.thief_position = np.array([np.random.randint(0, self.grid_size), np.random.randint(0, self.grid_size)])
+        #     invalid_initial_positions = [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states] + [np.array_equal(self.thief_position, each_police) for each_police in self.police_states] + [np.array_equal(self.thief_position, self.goal)] + [np.array_equal(self.thief_position, self.robber_in_jail)] + [np.array_equal(self.thief_position, each_key) for each_key in self.key_states]
             
-
+        
         # print("Valid initial position")
         self.done = False
+        self.has_thief_collected_key = False
+        self.is_second_robber_released = False
         self.reward = 0
-        self.has_thief_collected_key = np.random.choice([True, False])
-        self.key_states = [(2,2)]
-        self.is_second_robber_released = (self.has_thief_collected_key == True) and np.random.choice([True, False]) or False
+        self.robber_in_jail = robber_in_jail
+        for i in range(len(key_states)):
+            self.add_key_states(key_state_coordinates=(key_states[i][0],key_states[i][1]))
         
+        # self.done = False
+        # self.has_thief_collected_key = np.random.choice([True, False])
+        # if(self.has_thief_collected_key):
+        #     self.key_states = []
+        # else:
+        #     for i in range(len(key_states)):
+        #         self.add_key_states(key_state_coordinates=(key_states[i][0],key_states[i][1]))
+        # # self.key_states = self.has_thief_collected_key and [] or [(2,2)]
+        # self.is_second_robber_released = (self.has_thief_collected_key == True) and np.random.choice([True, False]) or False
+        # # self.is_second_robber_released = False
+        # if(self.is_second_robber_released):
+        #     self.reward = 200
+        #     self.robber_in_jail = self.thief_position
+        # elif(self.has_thief_collected_key):
+        #     self.reward = 100
+        # else:
+        #     self.reward = 0    
         info = self.calc_distance_to_goal()
 
-        # print(self.thief_position, int(self.has_thief_collected_key), int(self.is_second_robber_released))
-
-        # define state:
-        # 0: has thief not collected key
-        # 1: has thief collected key
-        # 2: has collected key and second robber been released
-        state = np.array([0,0, np.random.randint(0,3)])
-        # print("State:---> ", state)
-        # print("State: ", state)
-        return (np.array([*self.thief_position, int(self.is_second_robber_released)])), info
+        return self.thief_position, info
 
     # Method 2: Add police states
     # ---------
@@ -166,42 +179,45 @@ class JailEnv(gym.Env):
         if(True in [np.array_equal(self.thief_position, each_wall) for each_wall in self.wall_states]):
             self.thief_position[0] = initial_x
             self.thief_position[1] = initial_y
+            # print('wall')
 
         ## Reward:
         ## -------
         if np.array_equal(self.thief_position, self.goal): # Check goal condition
-            self.reward += 20
+            # print('goal')
+            self.reward += goal_reward
             self.done = True
         # Check if the thief has run into the second robber and has key
         elif self.is_second_robber_released == False and np.array_equal(self.thief_position, self.robber_in_jail):
-            self.reward += 5
+            # print('robber')
+            self.reward += releasing_robber_reward
             self.is_second_robber_released = True
         #If reached key, remove key
         elif(not self.has_thief_collected_key and np.array_equal(self.thief_position, self.key_states[0])):
+            # print('key')
             self.key_states.pop(0)
-            self.reward += 5
+            self.reward += getting_key_reward
             # Check if key is collected
             # if len(self.key_states) == 0:
             self.has_thief_collected_key = True
         elif True in [np.array_equal(self.thief_position, each_police) for each_police in self.police_states]: # Check police-states
-            self.reward += -10
+            # print('police')
+            self.reward += police_reward
             self.done = True
             
          # Every other state    
         else:
-            self.reward += -0.1
+            # print('else')
+            self.reward += else_reward
             self.done = False
 
         ## Info:
         ## -----
-        info = self.has_thief_collected_key, self.is_second_robber_released, self.count_key, self.count_release 
+        info = self.has_thief_collected_key, self.is_second_robber_released
 
-        # state = np.array([*self.thief_position, np.random.randint(0,3)])
+        # print('reward',self.reward,'self.done',self.done)
 
-        # state2 =  (not self.has_thief_collected_key and 0) or (self.is_second_robber_released and 2) or 1
-        state2 = self.is_second_robber_released and 2 or (self.has_thief_collected_key and 1 or 0)
-        # print("State: ", state2)
-        return np.array([*self.thief_position, int(self.is_second_robber_released)]), self.reward, self.done, info
+        return self.thief_position, self.reward, self.done, info
 
     def render(self):
         """ Method 3: .render(): Render the environment to visualize the current state of the environment"""

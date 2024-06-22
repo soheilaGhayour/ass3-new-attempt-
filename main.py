@@ -8,12 +8,12 @@ from Q_learning import train_q_learning, visualize_q_table
 train = True
 visualize_results = True
 
-learning_rate = 0.01  # Learning rate
-gamma = 0.99  # Discount factor
+learning_rate = 0.1  # Learning rate
+gamma = 0.5  # Discount factor
 epsilon = 1.0  # Exploration rate
 epsilon_min = 0.1  # Minimum exploration rate
 epsilon_decay = 0.995  # Decay rate for exploration
-no_episodes = 10_000 #Number of episodes
+no_episodes = 5_000 #Number of episodes
 
 goal_coordinates = (9, 9)
 # Define all hell state coordinates as a tuple within a list
@@ -26,7 +26,7 @@ robber_in_jail = (5,0)
 # wall_states = [(2,3),(1,0)]
 # police_states = [(1,4),(0,2)]
 # key_states = [(1,1)]
-# robber_in_jail = (3,0)
+# robber_in_jail = (2,0)
 
 # Execute:
 # --------

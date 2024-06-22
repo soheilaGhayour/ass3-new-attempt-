@@ -18,7 +18,7 @@ def train_q_learning(env,
 
     # Initialize the Q-table:
     # -----------------------
-    q_table = np.zeros((env.grid_size, env.grid_size,2, env.action_space.n))
+    q_table = np.zeros((env.grid_size, env.grid_size, env.action_space.n))
 
     # Q-learning algorithm:
     # ---------------------
@@ -47,10 +47,8 @@ def train_q_learning(env,
             next_state = tuple(next_state)
             total_reward += reward
 
-            # print("next_state" , next_state)
             #! Step 4: Update the Q-values using the Q-value update rule
             #! -------
-            # print(f"state: {state}, action: {action}, q_table[state][action]: {q_table[state]}")
             q_table[state][action] = q_table[state][action] + alpha * \
                 (reward + gamma *
                  np.max(q_table[next_state]) - q_table[state][action])
@@ -97,55 +95,55 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
 
         # Create subplots for each action:
         # --------------------------------
-        _, axes = plt.subplots(3, 4, figsize=(20, 15))
+        _, axes = plt.subplots(2, 4, figsize=(20, 10))
 
-        for j in range(2):
-            for i, action in enumerate(actions):
-                ax = axes[j][i]
-                print("q_table", q_table.shape, q_table,'\n','ax',ax)
-                heatmap_data = q_table[:, :,j, i].copy()
+        # for j in range(2):
+        for i, action in enumerate(actions):
+            ax = axes[0][i]
+            # print("q_table", q_table.shape, q_table,'\n','ax',ax)
+            heatmap_data = q_table[:, :, i].copy()
 
-                print("heatmap_data", heatmap_data.shape, heatmap_data)
-                # Mask the goal state's Q-value for visualization:
-                # ------------------------------------------------
-                mask = np.zeros_like(heatmap_data, dtype=bool)
-                # mask[goal_coordinates] = True
-                
-                # for wall in wall_states:
-                #     mask[wall] = True
-                # for police in police_states:
-                #     mask[police] = True
-                # for key in key_states:
-                #     mask[key] = True    
+            # print("heatmap_data", heatmap_data.shape, heatmap_data)
+            # Mask the goal state's Q-value for visualization:
+            # ------------------------------------------------
+            mask = np.zeros_like(heatmap_data, dtype=bool)
+            # mask[goal_coordinates] = True
+            
+            # for wall in wall_states:
+            #     mask[wall] = True
+            # for police in police_states:
+            #     mask[police] = True
+            # for key in key_states:
+            #     mask[key] = True    
 
-                sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="viridis",
-                            ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
+            sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="viridis",
+                        ax=ax, cbar=False, mask=mask, annot_kws={"size": 9})
 
-                # Denote Goal and Hell states:
-                # ----------------------------
-                ax.text(goal_coordinates[1] + 0.5, goal_coordinates[0] + 0.5, 'G', color='green',
+            # Denote Goal and Hell states:
+            # ----------------------------
+            ax.text(goal_coordinates[1] + 0.5, goal_coordinates[0] + 0.5, 'G', color='green',
+                    ha='center', va='center', weight='bold', fontsize=14)
+            for key in key_states:
+                ax.text(key[1] + 0.5, key[0] + 0.5, 'K', color='yellow',
                         ha='center', va='center', weight='bold', fontsize=14)
-                for key in key_states:
-                    ax.text(key[1] + 0.5, key[0] + 0.5, 'K', color='yellow',
-                            ha='center', va='center', weight='bold', fontsize=14)
-                for police in police_states:
-                    ax.text(police[1] + 0.5, police[0] + 0.5, 'P', color='red',
-                            ha='center', va='center', weight='bold', fontsize=14)    
-                for wall in wall_states:
-                    ax.text(wall[1] + 0.5, wall[0] + 0.5, 'W', color='black',
-                            ha='center', va='center', weight='bold', fontsize=14)
-                ax.text(robber_in_jail[1] + 0.5, robber_in_jail[0] + 0.5, 'J', color='blue',
+            for police in police_states:
+                ax.text(police[1] + 0.5, police[0] + 0.5, 'P', color='red',
                         ha='center', va='center', weight='bold', fontsize=14)    
+            for wall in wall_states:
+                ax.text(wall[1] + 0.5, wall[0] + 0.5, 'W', color='black',
+                        ha='center', va='center', weight='bold', fontsize=14)
+            ax.text(robber_in_jail[1] + 0.5, robber_in_jail[0] + 0.5, 'J', color='blue',
+                    ha='center', va='center', weight='bold', fontsize=14)    
 
-                ax.set_title(f"Action: {action} {j and 'when robber is picked' or 'when robber is not picked'}")
+            ax.set_title(f"Action: {action} ")
     
 # show the plot for the final answer using arrows:
-        for j in range(2):
-            print(axes)
-            ax = axes[2][j]
+        # for j in range(2):
+            # print(axes)
+            ax = axes[1][0]
             # find the index of the maximum Q-value for each state
-            optimal_policy = np.argmax(q_table[:,:,j,:], axis=2)
-            print("optimal_policy", optimal_policy)
+            optimal_policy = np.argmax(q_table[:,:,:], axis=2)
+            # print("optimal_policy", optimal_policy)
             mask = np.zeros_like(optimal_policy, dtype=bool)
             mask[goal_coordinates] = True
             for i in range(len(police_states)):
@@ -153,8 +151,8 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
             for i in range(len(wall_states)):
                 mask[wall_states[i]] = True
 
-            print('j',j)    
-            ax.set_title(f"Optimal Policy {j and 'when robber is picked' or 'when robber is not picked'}")
+            # print('j',j)    
+            ax.set_title(f"Optimal Policy")
 
             mask = np.ones_like(optimal_policy)
 
@@ -189,7 +187,7 @@ def visualize_q_table(police_states=[(2, 1), (0, 4)],
                                 ha='center', va='center', weight='bold', fontsize=14)
                         
                     if (i, j) == goal_coordinates:
-                        ax.text(j + temp_added_value, i + temp_added_value, 'R', color='blue',
+                        ax.text(j + temp_added_value, i + temp_added_value, 'G', color='blue',
                                 ha='center', va='center', weight='bold', fontsize=14)
                             
                     
