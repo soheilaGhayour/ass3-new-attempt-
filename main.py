@@ -5,7 +5,7 @@ from Q_learning import train_q_learning, visualize_q_table
 
 # User definitions:
 # -----------------
-train = True
+train = False
 visualize_results = True
 
 learning_rate = 0.1  # Learning rate
@@ -20,13 +20,8 @@ goal_coordinates = (9, 9)
 
 wall_states = [(8,2),(4,6),(5,9),(2,5),(3,3),(0,7),(7,5)]
 police_states = [(4,5),(1,7),(7,8)]
-key_states = [(2,2)]
+key_states = [(5,2)]
 robber_in_jail = (5,0)
-
-# wall_states = [(2,3),(1,0)]
-# police_states = [(1,4),(0,2)]
-# key_states = [(1,1)]
-# robber_in_jail = (2,0)
 
 # Execute:
 # --------

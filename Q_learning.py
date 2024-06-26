@@ -43,6 +43,7 @@ def train_q_learning(env,
                 action = np.argmax(q_table[state])  # Exploit
 
             next_state, reward, done, _ = env.step(action)
+            env.render()
 
             next_state = tuple(next_state)
             total_reward += reward
