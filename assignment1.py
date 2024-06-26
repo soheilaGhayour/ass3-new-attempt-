@@ -220,14 +220,15 @@ class JailEnv(gym.Env):
             self.screen.blit(robber_in_jail,(self.robber_in_jail[1] *self.cell_size,self.robber_in_jail[0] *self.cell_size))    
 
         # Draw the key-states:
-        for each_key in self.key_states:
-            key = pygame.image.load(yellow_key_img)
-            key = pygame.transform.scale(key, (self.cell_size, self.cell_size)) 
-            self.screen.blit(key,(each_key[1] *self.cell_size,each_key[0] *self.cell_size)) 
+        if self.has_thief_collected_key == False:
+            for each_key in self.key_states:
+                key = pygame.image.load(yellow_key_img)
+                key = pygame.transform.scale(key, (self.cell_size, self.cell_size)) 
+                self.screen.blit(key,(each_key[1] *self.cell_size,each_key[0] *self.cell_size)) 
 
 
         # Draw the thief:
-        if self.has_thief_collected_key and self.is_second_robber_released:
+        if self.is_second_robber_released:
             thief = pygame.image.load(two_robbers_img)
         elif self.has_thief_collected_key:    
             thief = pygame.image.load(thief_with_key_img)
@@ -237,6 +238,7 @@ class JailEnv(gym.Env):
         thief = pygame.transform.scale(thief, (self.cell_size, self.cell_size))
         self.screen.blit(thief,(self.thief_position[1] *self.cell_size,self.thief_position[0] *self.cell_size))
         # Update contents on the window:
+        # self.clock.tick(600)
         pygame.display.flip()
         pass
 
