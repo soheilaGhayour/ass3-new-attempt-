@@ -30,8 +30,6 @@ def train_q_learning(env,
         state = tuple(state)
         total_reward = 0
 
-        # print(f"state: {state}")
-
         #! Step 2: Take actions in the environment until "Done" flag is triggered
         #! -------
         while True:

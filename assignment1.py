@@ -238,7 +238,6 @@ class JailEnv(gym.Env):
         thief = pygame.transform.scale(thief, (self.cell_size, self.cell_size))
         self.screen.blit(thief,(self.thief_position[1] *self.cell_size,self.thief_position[0] *self.cell_size))
         # Update contents on the window:
-        # self.clock.tick(600)
         pygame.display.flip()
         pass
 

@@ -5,7 +5,7 @@ from Q_learning import train_q_learning, visualize_q_table
 
 # User definitions:
 # -----------------
-train = False
+train = False 
 visualize_results = True
 
 learning_rate = 0.1  # Learning rate
